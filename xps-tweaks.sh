@@ -197,8 +197,6 @@ else
     update-grub
 fi
 
-echo "FINISHED! Please reboot the machine!"
-
 # Ask for disabling tracker
 echo "Do you wish to disable GNOME tracker (it uses a lot of power)?"
 select yn in "Yes" "No"; do
@@ -207,3 +205,5 @@ select yn in "Yes" "No"; do
         No ) break;;
     esac
 done
+
+echo "FINISHED! Please reboot the machine!"
