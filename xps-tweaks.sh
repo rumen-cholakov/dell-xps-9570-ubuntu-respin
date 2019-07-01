@@ -215,4 +215,14 @@ select yn in "Yes" "No"; do
     esac
 done
 
+# Ask for disabling fingerprint reader
+echo "Do you wish to disable the fingerprint reader to save power (no linux driver is available for this device)?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) echo "# Disable fingerprint reader
+SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"27c6\", ATTRS{idProduct}==\"5395\", ATTR{authorized}=\"0\"" > /etc/udev/rules.d/fingerprint.rules; break;;
+        No ) break;;
+    esac
+done
+
 echo "FINISHED! Please reboot the machine!"
