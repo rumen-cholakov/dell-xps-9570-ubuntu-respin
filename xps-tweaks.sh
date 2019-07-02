@@ -33,6 +33,15 @@ add-apt-repository -y ppa:graphics-drivers/ppa
 apt -y update
 ubuntu-drivers autoinstall
 
+# Fix Audio Feedback/White Noise from Headphones on Battery Bug
+echo "Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may impact battery life)"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) sed -i '/SOUND_POWER_SAVE_ON_BAT/s/=.*/=0/' /etc/default/tlp; systemctl restart tlp; break;;
+        No ) break;;
+    esac
+done
+
 # Install codecs
 echo "Do you wish to install video codecs for encoding and playing videos?"
 select yn in "Yes" "No"; do
@@ -43,7 +52,7 @@ select yn in "Yes" "No"; do
 done
 
 # Enable high quality audio
-echo "Do you wish to enable high quality audio? (may impact on battery life)"
+echo "Do you wish to enable high quality audio? (may impact battery life)"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) echo "# This file is part of PulseAudio.
@@ -202,6 +211,16 @@ echo "Do you wish to disable GNOME tracker (it uses a lot of power)?"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) systemctl mask tracker-extract.desktop tracker-miner-apps.desktop tracker-miner-fs.desktop tracker-store.desktop; break;;
+        No ) break;;
+    esac
+done
+
+# Ask for disabling fingerprint reader
+echo "Do you wish to disable the fingerprint reader to save power (no linux driver is available for this device)?"
+select yn in "Yes" "No"; do
+    case $yn in
+        Yes ) echo "# Disable fingerprint reader
+SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"27c6\", ATTRS{idProduct}==\"5395\", ATTR{authorized}=\"0\"" > /etc/udev/rules.d/fingerprint.rules; break;;
         No ) break;;
     esac
 done
