@@ -29,9 +29,37 @@ sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/default/tlp
 systemctl restart tlp
 
 # Install the latest nVidia driver and codecs
-add-apt-repository -y ppa:graphics-drivers/ppa
-apt -y update
-ubuntu-drivers autoinstall
+echo "Do you wish to enable PRIME Offloading on the NVIDIA GPU? This may increase battery drain but will allow dynamic switching of the NVIDIA GPU without having to log out."
+select yn in "Yes" "No"; do
+	case $yn in
+	    Yes )
+            # Add repository with Xorg Builds containing required NVIDIA patches.
+		    add-apt-repository -y ppa:aplattner/ppa
+
+            # Enable Proprietary GPU PPA
+            add-apt-repository -y ppa:graphics-drivers/ppa
+		    
+            apt -y update
+            apt -y upgrade
+            apt -y install nvidia-driver-435 nvidia-settings # 435 is the minimum version to use PRIME offloading.
+		    
+            # Create simple script for launching programs on the NVIDIA GPU
+		    echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
+		    chmod +x /usr/local/bin/prime
+		    
+            # Create xorg.conf.d directory (If it doesn't already exist) and copy PRIME configuration file
+		    mkdir -p /etc/X11/xorg.conf.d/
+		    cp 10-prime-offload.conf /etc/X11/xorg.conf.d/
+            break;;
+        No )
+            apt -y update
+            ubuntu-drivers autoinstall
+            break;;
+    esac
+done
+
+# Enable modesetting on the NVIDIA Driver (Enables use of offloading and PRIME Sync)
+echo "options nvidia-drm modeset=1" >> /etc/modprobe.d/nvidia-drm.conf
 
 # Fix Audio Feedback/White Noise from Headphones on Battery Bug
 echo "Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may impact battery life)"
