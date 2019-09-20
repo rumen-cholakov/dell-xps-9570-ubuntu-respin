@@ -49,7 +49,8 @@ select yn in "Yes" "No"; do
 		    
             # Create xorg.conf.d directory (If it doesn't already exist) and copy PRIME configuration file
 		    mkdir -p /etc/X11/xorg.conf.d/
-		    cp 10-prime-offload.conf /etc/X11/xorg.conf.d/
+            wget https://raw.githubusercontent.com/JackHack96/dell-xps-9570-ubuntu-respin/master/10-prime-offload.conf
+            mv 10-prime-offload.conf /etc/X11/xorg.conf.d/
             break;;
         No )
             apt -y update
@@ -242,7 +243,7 @@ echo "Do you wish to disable the fingerprint reader to save power (no linux driv
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) echo "# Disable fingerprint reader
-SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"27c6\", ATTRS{idProduct}==\"5395\", ATTR{authorized}=\"0\"" > /etc/udev/rules.d/fingerprint.rules; break;;
+        SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"27c6\", ATTRS{idProduct}==\"5395\", ATTR{authorized}=\"0\"" > /etc/udev/rules.d/fingerprint.rules; break;;
         No ) break;;
     esac
 done
