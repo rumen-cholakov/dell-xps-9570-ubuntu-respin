@@ -63,7 +63,7 @@ done
 echo "options nvidia-drm modeset=1" >> /etc/modprobe.d/nvidia-drm.conf
 
 # Fix Audio Feedback/White Noise from Headphones on Battery Bug
-echo "Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may impact battery life)"
+echo "Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may slightly impact battery life)"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) sed -i '/SOUND_POWER_SAVE_ON_BAT/s/=.*/=0/' /etc/default/tlp; systemctl restart tlp; break;;
@@ -184,8 +184,8 @@ if [ "$release" == "bionic" ]; then
     apt-get install libavcodec58 libldac pulseaudio-modules-bt
 fi
 
-# Other packages
-apt -y install intel-microcode
+# Intel microcode
+apt -y install intel-microcode iucode-tool
 
 # Enable power saving tweaks for Intel chip
 if [[ $(uname -r) == *"4.15"* ]]; then
@@ -196,16 +196,13 @@ fi
 
 # Let users check fan speed with lm-sensors
 echo "options dell-smm-hwmon restricted=0 force=1" > /etc/modprobe.d/dell-smm-hwmon.conf
-if cat /etc/modules | grep "dell-smm-hwmon" &>/dev/null
+if < /etc/modules grep "dell-smm-hwmon" &>/dev/null
 then
     echo "dell-smm-hwmon is already in /etc/modules!"
 else
     echo "dell-smm-hwmon" >> /etc/modules
 fi
 update-initramfs -u
-
-# Switch to Intel card
-prime-select intel 2>/dev/null
 
 # Tweak grub defaults
 GRUB_OPTIONS_VAR_NAME="GRUB_CMDLINE_LINUX_DEFAULT"
@@ -219,13 +216,11 @@ select yn in "Yes" "No"; do
 done
 GRUB_OPTIONS_VAR="$GRUB_OPTIONS_VAR_NAME=\"$GRUB_OPTIONS\""
 
-if cat /etc/default/grub | grep "$GRUB_OPTIONS_VAR" &>/dev/null
+if < /etc/default/grub grep "$GRUB_OPTIONS_VAR" &>/dev/null
 then
     echo "Grub is already tweaked!"
 else
-    sed -i "s/^$GRUB_OPTIONS_VAR_NAME/# $GRUB_OPTIONS_VAR_NAME/g" /etc/default/grub
-    awk '/# '"$GRUB_OPTIONS_VAR_NAME"'/{print;print "'"$GRUB_OPTIONS_VAR_NAME"'=\"'"$GRUB_OPTIONS"'\"";next}1' /etc/default/grub | \
-        tee /etc/default/grub &>/dev/null
+    sed -i "s/^$GRUB_OPTIONS_VAR_NAME=.*/$GRUB_OPTIONS_VAR_NAME=\"$GRUB_OPTIONS\"/g" /etc/default/grub
     update-grub
 fi
 
