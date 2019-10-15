@@ -3,8 +3,8 @@
 release=$(lsb_release -c -s)
 
 # Check if the script is running under Ubuntu 18.04 Bionic Beaver
-if [ "$release" != "bionic" ] && [ "$release" != "disco" ]; then
-    >&2 echo "This script is made for Ubuntu 18.04/19.04!"
+if [ "$release" != "bionic" ] && [ "$release" != "disco" ] && [ "$release" != "eoan" ] ; then
+    >&2 echo "This script is made for Ubuntu 18.04/19.04/19.10!"
     exit 1
 fi
 
@@ -20,9 +20,11 @@ apt -y update
 apt -y full-upgrade
 
 # Install all the power management tools
-add-apt-repository -y ppa:linrunner/tlp
-apt -y update
-apt -y install thermald tlp tlp-rdw powertop
+if [ "$release" != "eoan" ]; then
+    add-apt-repository -y ppa:linrunner/tlp
+    apt -y update
+    apt -y install thermald tlp tlp-rdw powertop
+fi
 
 # Fix Sleep/Wake Bluetooth Bug
 sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/default/tlp
