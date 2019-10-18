@@ -36,28 +36,33 @@ select yn in "Yes" "No"; do
 	case $yn in
 	    Yes )
             # Add repository with Xorg Builds containing required NVIDIA patches.
-		    add-apt-repository -y ppa:aplattner/ppa
+	    if [ "$release" != "eoan" ]; then
+	    	add-apt-repository -y ppa:aplattner/ppa
 
             # Enable Proprietary GPU PPA
             add-apt-repository -y ppa:graphics-drivers/ppa
-		    
+
             apt -y update
             apt -y upgrade
             apt -y install nvidia-driver-435 nvidia-settings # 435 is the minimum version to use PRIME offloading.
-		    
+
             # Create simple script for launching programs on the NVIDIA GPU
-		    echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
-		    chmod +x /usr/local/bin/prime
-		    
+            echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
+            chmod +x /usr/local/bin/prime
+
             # Create xorg.conf.d directory (If it doesn't already exist) and copy PRIME configuration file
-		    mkdir -p /etc/X11/xorg.conf.d/
+            mkdir -p /etc/X11/xorg.conf.d/
             wget https://raw.githubusercontent.com/JackHack96/dell-xps-9570-ubuntu-respin/master/10-prime-offload.conf
             mv 10-prime-offload.conf /etc/X11/xorg.conf.d/
-            break;;
-        No )
+        else
             apt -y update
             ubuntu-drivers autoinstall
-            break;;
+	fi
+	break;;
+        No )
+        apt -y update
+        ubuntu-drivers autoinstall
+        break;;
     esac
 done
 
