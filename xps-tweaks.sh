@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 
+# Define colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 release=$(lsb_release -c -s)
 
 # Check if the script is running under Ubuntu 18.04 Bionic Beaver
 if [ "$release" != "bionic" ] && [ "$release" != "disco" ] && [ "$release" != "eoan" ] ; then
-    >&2 echo "This script is made for Ubuntu 18.04/19.04/19.10!"
+    >&2 echo -e "${RED}This script is made for Ubuntu 18.04/19.04/19.10!${NC}"
     exit 1
 fi
 
 # Check if the script is running as root
 if [ "$EUID" -ne 0 ]; then
-    >&2 echo "Please run xps-tweaks as root!"
+    >&2 echo -e "${RED}Please run xps-tweaks as root!${NC}"
     exit 2
 fi
 
@@ -31,7 +36,7 @@ sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/default/tlp
 systemctl restart tlp
 
 # Install the latest nVidia driver and codecs
-echo "Do you wish to enable PRIME Offloading on the NVIDIA GPU? This may increase battery drain but will allow dynamic switching of the NVIDIA GPU without having to log out."
+echo -e "${GREEN}Do you wish to enable PRIME Offloading on the NVIDIA GPU? This may increase battery drain but will allow dynamic switching of the NVIDIA GPU without having to log out.${NC}"
 select yn in "Yes" "No"; do
 	case $yn in
 	    Yes )
@@ -70,7 +75,7 @@ done
 echo "options nvidia-drm modeset=1" >> /etc/modprobe.d/nvidia-drm.conf
 
 # Fix Audio Feedback/White Noise from Headphones on Battery Bug
-echo "Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may slightly impact battery life)"
+echo -e "${GREEN}Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may slightly impact battery life)${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) sed -i '/SOUND_POWER_SAVE_ON_BAT/s/=.*/=0/' /etc/default/tlp; systemctl restart tlp; break;;
@@ -79,7 +84,7 @@ select yn in "Yes" "No"; do
 done
 
 # Install codecs
-echo "Do you wish to install video codecs for encoding and playing videos?"
+echo -e "${GREEN}Do you wish to install video codecs for encoding and playing videos?${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) apt -y install ubuntu-restricted-extras va-driver-all vainfo libva2 gstreamer1.0-libav gstreamer1.0-vaapi; break;;
@@ -88,7 +93,7 @@ select yn in "Yes" "No"; do
 done
 
 # Enable high quality audio
-echo "Do you wish to enable high quality audio? (may impact battery life)"
+echo -e "${GREEN}Do you wish to enable high quality audio? (may impact battery life)${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) echo "# This file is part of PulseAudio.
@@ -214,7 +219,7 @@ update-initramfs -u
 # Tweak grub defaults
 GRUB_OPTIONS_VAR_NAME="GRUB_CMDLINE_LINUX_DEFAULT"
 GRUB_OPTIONS="quiet splash acpi_rev_override=1 acpi_osi=Linux nouveau.modeset=0 pcie_aspm=force drm.vblankoffdelay=1 scsi_mod.use_blk_mq=1 nouveau.runpm=0 mem_sleep_default=deep "
-echo "Do you wish to disable SPECTRE/Meltdown patches for performance?"
+echo -e "${GREEN}Do you wish to disable SPECTRE/Meltdown patches for performance?${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) GRUB_OPTIONS+="pti=off spectre_v2=off l1tf=off nospec_store_bypass_disable no_stf_barrier"; break;;
@@ -225,14 +230,14 @@ GRUB_OPTIONS_VAR="$GRUB_OPTIONS_VAR_NAME=\"$GRUB_OPTIONS\""
 
 if < /etc/default/grub grep "$GRUB_OPTIONS_VAR" &>/dev/null
 then
-    echo "Grub is already tweaked!"
+    echo -e "${GREEN}Grub is already tweaked!${NC}"
 else
     sed -i "s/^$GRUB_OPTIONS_VAR_NAME=.*/$GRUB_OPTIONS_VAR_NAME=\"$GRUB_OPTIONS\"/g" /etc/default/grub
     update-grub
 fi
 
 # Ask for disabling tracker
-echo "Do you wish to disable GNOME tracker (it uses a lot of power)?"
+echo -e "${GREEN}Do you wish to disable GNOME tracker (it uses a lot of power)?${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) systemctl mask tracker-extract.desktop tracker-miner-apps.desktop tracker-miner-fs.desktop tracker-store.desktop; break;;
@@ -241,7 +246,7 @@ select yn in "Yes" "No"; do
 done
 
 # Ask for disabling fingerprint reader
-echo "Do you wish to disable the fingerprint reader to save power (no linux driver is available for this device)?"
+echo -e "${GREEN}Do you wish to disable the fingerprint reader to save power (no linux driver is available for this device)?${NC}"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) echo "# Disable fingerprint reader
@@ -250,4 +255,4 @@ select yn in "Yes" "No"; do
     esac
 done
 
-echo "FINISHED! Please reboot the machine!"
+echo -e "${GREEN}FINISHED! Please reboot the machine!${NC}"
