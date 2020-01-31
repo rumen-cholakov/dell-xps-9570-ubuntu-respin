@@ -25,11 +25,9 @@ apt -y update
 apt -y full-upgrade
 
 # Install all the power management tools
-if [ "$release" != "eoan" ]; then
-    add-apt-repository -y ppa:linrunner/tlp
-    apt -y update
-    apt -y install thermald tlp tlp-rdw powertop
-fi
+add-apt-repository -y ppa:linrunner/tlp
+apt -y update
+apt -y install thermald tlp tlp-rdw powertop
 
 # Fix Sleep/Wake Bluetooth Bug
 sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/default/tlp
@@ -49,7 +47,7 @@ select yn in "Yes" "No"; do
 
             apt -y update
             apt -y upgrade
-            apt -y install nvidia-driver-435 nvidia-settings # 435 is the minimum version to use PRIME offloading.
+            apt -y install nvidia-driver-440 nvidia-settings
 
             # Create simple script for launching programs on the NVIDIA GPU
             echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
