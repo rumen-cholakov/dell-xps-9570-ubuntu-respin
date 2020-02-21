@@ -30,7 +30,7 @@ apt -y update
 apt -y install thermald tlp tlp-rdw powertop
 
 # Fix Sleep/Wake Bluetooth Bug
-sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/default/tlp
+sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/tlp.conf
 systemctl restart tlp
 
 # Install the latest nVidia driver and codecs
@@ -76,7 +76,7 @@ echo "options nvidia-drm modeset=1" >> /etc/modprobe.d/nvidia-drm.conf
 echo -e "${GREEN}Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may slightly impact battery life)${NC}"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) sed -i '/SOUND_POWER_SAVE_ON_BAT/s/=.*/=0/' /etc/default/tlp; systemctl restart tlp; break;;
+        Yes ) sed -i '/SOUND_POWER_SAVE_ON_BAT/s/=.*/=0/' /etc/tlp.conf; systemctl restart tlp; break;;
         No ) break;;
     esac
 done
