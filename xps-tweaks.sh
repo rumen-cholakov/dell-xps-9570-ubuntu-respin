@@ -28,8 +28,8 @@ apt -y full-upgrade
 if [ "$release" != "focal" ] ; then
     add-apt-repository -y ppa:linrunner/tlp
     apt -y update
-    apt -y install thermald tlp tlp-rdw powertop
 fi
+apt -y install thermald tlp tlp-rdw powertop
 
 # Fix Sleep/Wake Bluetooth Bug
 sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/tlp.conf
