@@ -8,8 +8,8 @@ NC='\033[0m' # No Color
 release=$(lsb_release -c -s)
 
 # Check if the script is running under Ubuntu 18.04 Bionic Beaver
-if [ "$release" != "bionic" ] && [ "$release" != "eoan" ] && [ "$release" != "focal" ] ; then
-    >&2 echo -e "${RED}This script is made for Ubuntu 18.04/19.10/20.04!${NC}"
+if [ "$release" != "bionic" ] && [ "$release" != "focal" ] ; then
+    >&2 echo -e "${RED}This script is made for Ubuntu 18.04/20.04!${NC}"
     exit 1
 fi
 
@@ -50,7 +50,7 @@ if [ "$release" != "focal" ] ; then
 
                 apt -y update
                 apt -y upgrade
-                apt -y install nvidia-driver-440 nvidia-settings
+                apt -y install nvidia-driver-450 nvidia-settings
 
                 # Create simple script for launching programs on the NVIDIA GPU
                 echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
