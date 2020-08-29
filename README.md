@@ -29,9 +29,7 @@ Kudos and all the credits for things not related to my work go to developers and
  - ✅ Keyboard backlight
  - ✅ Display brightness
  - ✅ Sleep/wake on Intel
-
-### What does't work properly
- - ➖ Sleep/wake on nVidia
+ - ✅ Sleep/wake on nVidia
 
 ### What doesn't work
  - ❌ Goodix Fingerprint sensor
