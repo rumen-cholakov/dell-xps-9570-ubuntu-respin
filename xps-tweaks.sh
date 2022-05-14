@@ -7,12 +7,6 @@ NC='\033[0m' # No Color
 
 release=$(lsb_release -c -s)
 
-# Check if the script is running under Ubuntu 18.04 Bionic Beaver
-if [ "$release" != "bionic" ] && [ "$release" != "focal" ] ; then
-    >&2 echo -e "${RED}This script is made for Ubuntu 18.04/20.04!${NC}"
-    exit 1
-fi
-
 # Check if the script is running as root
 if [ "$EUID" -ne 0 ]; then
     >&2 echo -e "${RED}Please run xps-tweaks as root!${NC}"
@@ -23,54 +17,11 @@ fi
 add-apt-repository -y universe
 apt -y update
 apt -y full-upgrade
-
-# Install all the power management tools
-if [ "$release" != "focal" ] ; then
-    add-apt-repository -y ppa:linrunner/tlp
-    apt -y update
-fi
 apt -y install thermald tlp tlp-rdw powertop
 
 # Fix Sleep/Wake Bluetooth Bug
 sed -i '/RESTORE_DEVICE_STATE_ON_STARTUP/s/=.*/=1/' /etc/tlp.conf
 systemctl restart tlp
-
-# Install the latest nVidia driver and codecs (not needed in Focal as it's all ready out-of-the-box)
-if [ "$release" != "focal" ] ; then
-    echo -e "${GREEN}Do you wish to enable PRIME Offloading on the NVIDIA GPU? This may increase battery drain but will allow dynamic switching of the NVIDIA GPU without having to log out.${NC}"
-    select yn in "Yes" "No"; do
-        case $yn in
-            Yes )
-                # Add repository with Xorg Builds containing required NVIDIA patches.
-                if [ "$release" == "bionic" ]; then
-                    add-apt-repository -y ppa:aplattner/ppa
-                fi
-                # Enable Proprietary GPU PPA
-                add-apt-repository -y ppa:graphics-drivers/ppa
-
-                apt -y update
-                apt -y upgrade
-                apt -y install nvidia-driver-450 nvidia-settings
-
-                # Create simple script for launching programs on the NVIDIA GPU
-                echo '__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME="nvidia" __VK_LAYER_NV_optimus="NVIDIA_only" exec "$@"' >> /usr/local/bin/prime
-                chmod +x /usr/local/bin/prime
-
-                # Create xorg.conf.d directory (If it doesn't already exist) and copy PRIME configuration file
-                mkdir -p /etc/X11/xorg.conf.d/
-                wget https://raw.githubusercontent.com/JackHack96/dell-xps-9570-ubuntu-respin/master/10-prime-offload.conf
-                mv 10-prime-offload.conf /etc/X11/xorg.conf.d/
-
-                # Enable modesetting on the NVIDIA Driver (Enables use of offloading and PRIME Sync)
-                echo "options nvidia-drm modeset=1" >> /etc/modprobe.d/nvidia-drm.conf
-                break;;
-            No )
-                apt -y update
-                ubuntu-drivers autoinstall
-                break;;
-        esac
-    done
-fi
 
 # Fix Audio Feedback/White Noise from Headphones on Battery Bug
 echo -e "${GREEN}Do you wish to fix the headphone white noise on battery bug? (if you do not have this issue, there is no need to enable it) (may slightly impact battery life)${NC}"
@@ -187,22 +138,10 @@ deferred-volume-safety-margin-usec = 1
     esac
 done
 
-# Enable LDAC, APTX, APTX-HD, AAC support in PulseAudio Bluetooth (for Ubuntu 18.04)
-if [ "$release" == "bionic" ]; then
-    add-apt-repository ppa:eh5/pulseaudio-a2dp
-    apt-get update
-    apt-get install libavcodec58 libldac pulseaudio-modules-bt
-fi
-
 # Intel microcode
 apt -y install intel-microcode iucode-tool
 
-# Enable power saving tweaks for Intel chip
-if [[ $(uname -r) == *"4.15"* ]]; then
-    echo "options i915 enable_fbc=1 enable_guc_loading=1 enable_guc_submission=1 disable_power_well=0 fastboot=1" > /etc/modprobe.d/i915.conf
-else
-    echo "options i915 enable_fbc=1 enable_guc=3 disable_power_well=0 fastboot=1" > /etc/modprobe.d/i915.conf
-fi
+echo "options i915 enable_fbc=1 enable_guc=3 disable_power_well=0 fastboot=1" > /etc/modprobe.d/i915.conf
 
 # Let users check fan speed with lm-sensors
 echo "options dell-smm-hwmon restricted=0 force=1" > /etc/modprobe.d/dell-smm-hwmon.conf
